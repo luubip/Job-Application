@@ -60,7 +60,6 @@ namespace Web_Server.Services
                 {
                     UserId = userId,
                     RecruitmentId = recruitmentId,
-                    CreatedAt = DateTime.UtcNow
                 };
                 await _followJobRepository.CreateAsync(newFollow);
                 return (true, "Lưu theo dõi thành công");

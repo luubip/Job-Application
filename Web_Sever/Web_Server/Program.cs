@@ -63,6 +63,7 @@ builder.Services.AddScoped<ICVService, CVService>();
 builder.Services.AddScoped<IApplyPostRepository, ApplyPostRepository>();
 builder.Services.AddScoped<IApplyPostService, ApplyPostService>();
 builder.Services.AddScoped<IFollowJobRepository, FollowJobRepository>();
+builder.Services.AddScoped<IFollowJobService, FollowJobService>();
 builder.Services.AddScoped<IFollowCompanyRepository, FollowCompanyRepository>();
 builder.Services.AddScoped<IFollowCompanyService, FollowCompanyService>();
 builder.Services.AddHttpContextAccessor();

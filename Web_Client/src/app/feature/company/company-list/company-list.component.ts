@@ -6,6 +6,8 @@ import { Company } from '../../../models/Company';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CompanyFollowService } from '../../../services/company-follow.service';
+import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-company-list',
@@ -28,7 +30,9 @@ export class CompanyListComponent {
   constructor(
     private route: ActivatedRoute,
     private companyService: CompanyService,
-    private companyFollowService: CompanyFollowService
+    private companyFollowService: CompanyFollowService,
+    private authService: AuthService,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -95,10 +99,16 @@ export class CompanyListComponent {
 
   toggleFollow(event: Event, companyId: number) {
     event.stopPropagation();
+
+    if (!this.authService.isAuthenticated()) {
+      alert('Vui lòng đăng nhập để theo dõi công ty');
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.companyFollowService.toggleFollow(companyId)
       .subscribe(response => {
         alert(response.message);
-        // Sau khi toggle, cập nhật lại danh sách follows
         this.loadFollowedCompanies();
       });
   }

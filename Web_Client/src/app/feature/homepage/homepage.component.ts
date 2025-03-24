@@ -11,6 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ApplyDialogComponent } from '../recruitment/apply-dialog/apply-dialog.component';
+import { JobFollowService } from '../../services/job-follow.service';
 
 @Component({
   selector: 'app-homepage',
@@ -31,6 +32,8 @@ export class HomepageComponent {
     'assets/images/slide5.jpg'
   ];
   currentIndex: number = 0;
+  followedJobs: number[] = [];
+
   constructor(
     private categoryService: CategoryService,
     private companyService: CompanyService,
@@ -38,7 +41,8 @@ export class HomepageComponent {
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
-    private authService: AuthService
+    private authService: AuthService,
+    private jobFollowService: JobFollowService
   ) { }
 
   ngOnInit(): void {
@@ -69,7 +73,12 @@ export class HomepageComponent {
     setInterval(() => {
       this.currentIndex = (this.currentIndex + 1) % this.images.length;
     }, 15000);
+
+    if (this.authService.isLoggedIn()) {
+      this.loadFollowedJobs();
+    }
   }
+
   prevSlide() {
     this.currentIndex = (this.currentIndex === 0) ? this.images.length - 1 : this.currentIndex - 1;
   }
@@ -79,7 +88,7 @@ export class HomepageComponent {
   }
 
   isLoggedIn(): boolean {
-    return this.authService.isAuthenticated();
+    return this.authService.isLoggedIn();
   }
 
   onApply(recruitment: Recruitment) {
@@ -95,5 +104,27 @@ export class HomepageComponent {
         recruitmentId: recruitment.id
       }
     });
+  }
+
+  loadFollowedJobs() {
+    this.jobFollowService.getFollowedJobs()
+      .subscribe(follows => {
+        this.followedJobs = follows.map(follow => follow.recruitmentId);
+      });
+  }
+
+  toggleJobFollow(event: Event, jobId: number) {
+    event.stopPropagation();
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+    this.jobFollowService.toggleFollow(jobId)
+      .subscribe(response => {
+        this.loadFollowedJobs();
+      });
+  }
+
+  isJobFollowed(jobId: number): boolean {
+    return this.followedJobs.includes(jobId);
   }
 }
