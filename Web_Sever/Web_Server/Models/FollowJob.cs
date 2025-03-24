@@ -1,15 +1,15 @@
-﻿namespace Web_Server.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Web_Server.Models
 {
     public class FollowJob
     {
         public int Id { get; set; }
         public int UserId { get; set; }
         public int RecruitmentId { get; set; }
-
+        public DateTime CreatedAt { get; set; }
 
         public User User { get; set; }
         public Recruitment Recruitment { get; set; }
-
-
     }
 }

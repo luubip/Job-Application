@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { Company } from '../../../models/Company';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CompanyFollowService } from '../../../services/company-follow.service';
+
 @Component({
   selector: 'app-company-list',
   standalone: true,
@@ -19,15 +21,20 @@ export class CompanyListComponent {
   recordsPerPage: number = 15;
   totalPages: number = 1;
   pageTitle: string = 'Danh Sách Doanh Nghiệp';
-  search : string = "";
-  unsearch : Company[] = [];
-  constructor(private route: ActivatedRoute, private companyService: CompanyService) { }
+  search: string = "";
+  unsearch: Company[] = [];
+  followedCompanies: any[] = [];
+
+  constructor(
+    private route: ActivatedRoute,
+    private companyService: CompanyService,
+    private companyFollowService: CompanyFollowService
+  ) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       const filterId = Number(params.get('id'));
       const urlPath = this.route.snapshot.url.map(segment => segment.path).join('/');
-
 
       this.companies = [];
       this.paginatedCompanies = [];
@@ -44,30 +51,59 @@ export class CompanyListComponent {
             this.pageTitle = 'Không có doanh nghiệp nào.';
           }
           this.updatePagination();
+          this.loadFollowedCompanies();
         },
         (error) => console.error('Error fetching all recruitments:', error)
       );
     });
   }
+
   updatePagination() {
     this.totalPages = Math.ceil(this.companies.length / this.recordsPerPage);
     this.goToPage(1);
   }
+
   goToPage(page: number) {
     this.currentPage = page;
     const startIndex = (this.currentPage - 1) * this.recordsPerPage;
     this.paginatedCompanies = this.companies.slice(startIndex, startIndex + this.recordsPerPage);
   }
 
-  companySearch(){
-    if(!this.search){  
+  companySearch() {
+    if (!this.search) {
       this.companies = [...this.unsearch];
       this.updatePagination();
+      this.loadFollowedCompanies();
       return;
     }
     this.companyService.getCompaniesByName(this.search).subscribe(data => {
       this.companies = data;
       this.updatePagination();
+      this.loadFollowedCompanies();
     });
+  }
+
+  loadFollowedCompanies() {
+    this.followedCompanies = [];
+    this.companyFollowService.getFollowedCompanies()
+      .subscribe(follows => {
+        // Lấy ra mảng companyId từ danh sách follows
+        this.followedCompanies = follows.map(follow => follow.companyId);
+        console.log('Followed companies updated:', this.followedCompanies);
+      });
+  }
+
+  toggleFollow(event: Event, companyId: number) {
+    event.stopPropagation();
+    this.companyFollowService.toggleFollow(companyId)
+      .subscribe(response => {
+        alert(response.message);
+        // Sau khi toggle, cập nhật lại danh sách follows
+        this.loadFollowedCompanies();
+      });
+  }
+
+  isFollowing(companyId: number): boolean {
+    return this.followedCompanies.includes(companyId);
   }
 }
